@@ -1,0 +1,14 @@
+names:
+- Apple
+- Banana
+- Orange
+nc: 3
+roboflow:
+  license: CC BY 4.0
+  project: fruit02
+  url: https://universe.roboflow.com/appletxt-6tbrj/fruit02/dataset/4
+  version: 4
+  workspace: appletxt-6tbrj
+test: ../test/images
+train: ../train/images
+val: ../valid/images
