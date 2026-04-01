@@ -7,7 +7,7 @@ Chương 1: Giới thiệu tổng quan
 Nhận dạng ảnh là một bài toán cơ bản trong lĩnh vực thị giác máy tính .Trong bài toán nhận diện hoa quả ,ngoài những khó khăn cơ bản trong nhận diện hình ảnh như kích thước ,ảnh sáng ,hậu cảnh….nhận diện hoa quả còn có những khó khan riêng như lượng dữ liệu khổng lồ với lượng hoa quả cực kỳ lớn với vô số màu sắc, hình dạng cũng như
 
 quá trình phát triển từ lúc còn xanh đến lúc chin, hỏng cũng như sự thay đổi của thời tiết ,chế độ dinh dưỡng ,lượng nước cung cấp….
-![Hình 1: Một loại trái cây có số lượng màu sắc chủng loại lớn](img/1.jpg)
+![Hình 1: Một loại trái cây có số lượng màu sắc chủng loại lớn](img/1.png)
 
 
 Trong thời đại công nghệ 4.0, việc ứng dụng thị giác máy tính (Computer Vision) vào đời sống thực tế ngày càng trở nên phổ biến và quan trọng. Một trong những ứng dụng thiết thực là tự động nhận diện và phân loại hoa quả dựa trên hình ảnh, giúp tiết kiệm thời gian, tăng độ chính xác và giảm chi phí nhân công.
