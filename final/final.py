@@ -1,14 +1,17 @@
 import tkinter as tk  # Thư viện tạo giao diện
 from PIL import Image, ImageTk, ImageFilter  # Thư viện xử lý hình ảnh
 import cv2
-from tkinter import filedialog  # Hộp thoại mở file
+from tkinter import filedialog, messagebox  # Hộp thoại mở file
 from ultralytics import YOLO  # Nhận diện YOLO
 import os
-import numpy as np  # Thư viện tính toán
-import random
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+PROJECT_ROOT = os.path.dirname(BASE_DIR)
 
 # Lớp SubWindow kế thừa từ lớp Toplevel để tạo cửa sổ nhận diện
 class SubWindow(tk.Toplevel):
+    _shared_model = None
+
     def __init__(self, master):
         super().__init__(master)
         self.title("Nhận dạng và phân loại")
@@ -41,20 +44,33 @@ class SubWindow(tk.Toplevel):
         self.load_model()
 
     def load_model(self):
-        self.yolo_model = YOLO("C:/Fruits10/runs/detect/train/weights/best.pt")
+        model_path = os.path.join(PROJECT_ROOT, "runs", "detect", "train", "weights", "best.pt")
+        if not os.path.exists(model_path):
+            messagebox.showerror("Lỗi mô hình", f"Không tìm thấy mô hình: {model_path}")
+            self.destroy()
+            return
+
+        if SubWindow._shared_model is None:
+            SubWindow._shared_model = YOLO(model_path)
+
+        self.yolo_model = SubWindow._shared_model
 
     def upload_image(self):
         """Mở hộp thoại chọn ảnh và thực hiện nhận diện."""
         file_path = filedialog.askopenfilename(filetypes=[("Image files", "*.jpg;*.jpeg;*.png")])
-        if not file_path:
+        if not file_path or not hasattr(self, "yolo_model"):
             return
 
         # Đọc ảnh
         image = cv2.imread(file_path)
+        if image is None:
+            messagebox.showerror("Lỗi ảnh", "Không thể đọc ảnh đã chọn.")
+            return
+
         orig = image.copy()
 
         # Nhận diện ảnh với YOLO
-        yolo_results = self.yolo_model(file_path)
+        yolo_results = self.yolo_model(orig, verbose=False)
 
         # Đếm số lượng từng loại trái cây
         object_counts = self.count_objects(yolo_results)
@@ -72,19 +88,21 @@ class SubWindow(tk.Toplevel):
                 cv2.putText(orig, label, (x1, y1 - 10), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
 
         # Lưu ảnh đã xử lý
-        save_dir = "output_fruits"
+        save_dir = os.path.join(PROJECT_ROOT, "output_fruits")
         os.makedirs(save_dir, exist_ok=True)
         save_path = os.path.join(save_dir, os.path.basename(file_path))
         cv2.imwrite(save_path, orig)
 
-        # Hiển thị ảnh
-        self.display_detected_image(save_path)
+        # Hiển thị ảnh trực tiếp để tránh I/O trung gian
+        self.display_detected_image(orig)
 
     def count_objects(self, results):
         """Đếm số lượng đối tượng theo từng loại."""
         object_counts = {}
         for result in results:
-            class_ids = result.boxes.cls.numpy().astype(int)
+            if result.boxes is None or result.boxes.cls is None:
+                continue
+            class_ids = result.boxes.cls.cpu().numpy().astype(int)
             for class_id in class_ids:
                 object_class = self.class_names.get(class_id, "Unknown")
                 object_counts[object_class] = object_counts.get(object_class, 0) + 1
@@ -93,13 +111,17 @@ class SubWindow(tk.Toplevel):
     def display_object_counts(self, object_counts):
         """Hiển thị số lượng loại trái cây đã nhận diện."""
         result_text = "Loại quả đã nhận dạng:\n"
-        for object_class, count in object_counts.items():
-            result_text += f"{count} : {object_class}\n"
+        if not object_counts:
+            result_text += "Không phát hiện được trái cây nào."
+        else:
+            for object_class, count in object_counts.items():
+                result_text += f"{count} : {object_class}\n"
         self.object_result_label.configure(text=result_text)
 
-    def display_detected_image(self, image_path):
+    def display_detected_image(self, image_bgr):
         """Hiển thị ảnh đã nhận diện trong cửa sổ."""
-        img = Image.open(image_path)
+        rgb_img = cv2.cvtColor(image_bgr, cv2.COLOR_BGR2RGB)
+        img = Image.fromarray(rgb_img)
         img = img.resize((400, 400), Image.LANCZOS)
         img_tk = ImageTk.PhotoImage(img)
         self.image_label.configure(image=img_tk)
@@ -119,7 +141,8 @@ window.title("Nhận dạng và phân loại trái cây")
 window.geometry("600x600")
 
 # Load ảnh nền
-background_image = Image.open(r"C:\Fruits10\final\nen.jpg")
+background_path = os.path.join(BASE_DIR, "nen.jpg")
+background_image = Image.open(background_path)
 background_image = background_image.resize((600, 600), Image.LANCZOS)
 background_image = background_image.filter(ImageFilter.SHARPEN)  # Làm nét ảnh
 
