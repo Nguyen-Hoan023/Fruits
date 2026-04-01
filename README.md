@@ -1,13 +1,4 @@
-NHÓM 9: ĐỀ TÀI NHẬN DIỆN TRÁI CÂY
-
-Thành viên:
-Lê Đình Hùng
-
-Nguyễn Viết Hoàng
-
-Nguyễn Huy Hoàn
-
-Đào Minh Hiếu
+ĐỀ TÀI NHẬN DIỆN TRÁI CÂY
 
 Chương 1: Giới thiệu tổng quan
 
